@@ -1,0 +1,127 @@
+# Tidomat Auto Time Registration — Build Spec
+
+## Overview
+
+Build a Windows startup app that automatically logs into Tidomat and registers "In" time on login. A toast notification shows "Clocking in!" while the script runs and closes when done.
+
+---
+
+## Project Structure
+
+```
+C:\ClockIn\
+├── store_credentials.py   # Run once to save credentials, then delete
+├── clockin.py             # Main script
+└── dist\
+    └── clockin.exe        # Packaged output from PyInstaller
+```
+
+---
+
+## Step 1 — Store Credentials (run once, then delete)
+
+Create `store_credentials.py`:
+
+```python
+import keyring
+import getpass
+
+keyring.set_password("tidomat", "username", input("Email: "))
+keyring.set_password("tidomat", "password", getpass.getpass("Password: "))
+
+print("Credentials saved securely!")
+```
+
+Run it once:
+```
+python store_credentials.py
+```
+
+Credentials are entered interactively and never written to disk. Delete the file when done.
+
+---
+
+## Step 2 — Main Script
+
+Create `clockin.py`:
+
+- On startup, immediately show a toast notification displaying **"Clocking in!"** in the lower right corner
+- In the main thread, run the Playwright automation to log in and register "In" time
+- When Playwright finishes, close the toast
+- No success/failure states, no buttons, no error handling
+
+---
+
+## Step 3 — Test the script
+
+```
+cd C:\ClockIn
+python clockin.py
+```
+
+Expected behaviour:
+- A toast appears in the lower right corner showing "Clocking in!"
+- Playwright silently logs in and registers "In" in the background
+- Toast closes automatically when Playwright finishes
+
+---
+
+## Step 4 — Package as .exe
+
+```
+cd C:\ClockIn
+pyinstaller --onefile --noconsole clockin.py
+```
+
+Output: `C:\ClockIn\dist\clockin.exe`
+
+---
+
+## Step 5 — Register for Windows startup
+
+### Option A — Startup Folder (easiest)
+1. Press **Win + R**, type `shell:startup`, press Enter
+2. Paste a shortcut to `C:\ClockIn\dist\clockin.exe` into that folder
+
+### Option B — Registry (cleaner)
+1. Press **Win + R**, type `regedit`, press Enter
+2. Navigate to:
+   ```
+   HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run
+   ```
+3. Right-click right panel → **New → String Value**
+4. Name: `TimeRegistration`
+5. Value: `C:\ClockIn\dist\clockin.exe`
+6. Click OK, close regedit
+
+---
+
+## Dependencies
+
+Install before running:
+
+```
+pip install pyinstaller playwright keyring
+playwright install chromium
+```
+
+---
+
+## Element IDs (Tidomat site)
+
+| Element | ID |
+|---|---|
+| Email field | `ctl23_email` |
+| Password field | `ctl23_password` |
+| Login button | `ctl23_SigninButton` |
+| Type dropdown input | `LeftPane_fxhpersonregister2_typeList_typeList_Input` |
+| Register button | `LeftPane_fxhpersonregister2_ButtonRegister` |
+| Type value to set | `In` |
+
+---
+
+## Behaviour on startup
+
+| Scenario | Result |
+|---|---|
+| Script runs | Toast shows "Clocking in!", closes when done |
