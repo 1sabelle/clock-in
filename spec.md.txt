@@ -1,8 +1,8 @@
-# Tidomat Auto Time Registration — Build Spec
+# Auto Time Registration — Build Spec
 
 ## Overview
 
-Build a Windows startup app that automatically logs into Tidomat and registers "In" time on login. A toast notification shows "Clocking in!" while the script runs and closes when done.
+Build a Windows startup app that automatically logs into a web-hosted time registration system and registers "In" time on login. A toast notification shows "Clocking in!" while the script runs and closes when done.
 
 ---
 
@@ -25,9 +25,14 @@ Create `store_credentials.py`:
 ```python
 import keyring
 import getpass
+import os
+from dotenv import load_dotenv
 
-keyring.set_password("tidomat", "username", input("Email: "))
-keyring.set_password("tidomat", "password", getpass.getpass("Password: "))
+load_dotenv()
+KEYRING_SERVICE = os.getenv("KEYRING_SERVICE")
+
+keyring.set_password(KEYRING_SERVICE, "username", input("Email: "))
+keyring.set_password(KEYRING_SERVICE, "password", getpass.getpass("Password: "))
 
 print("Credentials saved securely!")
 ```
@@ -49,6 +54,8 @@ Create `clockin.py`:
 - In the main thread, run the Playwright automation to log in and register "In" time
 - When Playwright finishes, close the toast
 - No success/failure states, no buttons, no error handling
+
+All configuration (URL, element IDs, keyring service name) is loaded from `.env` which is not checked in.
 
 ---
 
@@ -101,22 +108,25 @@ Output: `C:\ClockIn\dist\clockin.exe`
 Install before running:
 
 ```
-pip install pyinstaller playwright keyring
+pip install pyinstaller playwright keyring python-dotenv
 playwright install chromium
 ```
 
 ---
 
-## Element IDs (Tidomat site)
+## Configuration (.env)
 
-| Element | ID |
+All sensitive configuration lives in a local `.env` file (not checked in). Required keys:
+
+| Key | Description |
 |---|---|
-| Email field | `ctl23_email` |
-| Password field | `ctl23_password` |
-| Login button | `ctl23_SigninButton` |
-| Type dropdown input | `LeftPane_fxhpersonregister2_typeList_typeList_Input` |
-| Register button | `LeftPane_fxhpersonregister2_ButtonRegister` |
-| Type value to set | `In` |
+| `URL` | Login page URL |
+| `KEYRING_SERVICE` | Keyring service name for stored credentials |
+| `EMAIL_FIELD` | CSS selector for email input |
+| `PASSWORD_FIELD` | CSS selector for password input |
+| `LOGIN_BUTTON` | CSS selector for login button |
+| `TYPE_INPUT` | CSS selector for registration type dropdown |
+| `REGISTER_BUTTON` | CSS selector for register button |
 
 ---
 
