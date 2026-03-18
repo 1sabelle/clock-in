@@ -2,7 +2,7 @@
 
 ## Overview
 
-Build a Windows startup app that automatically logs into a web-hosted time registration system and registers "In" time on login. A toast notification shows "Clocking in!" while the script runs and closes when done.
+Build a Windows startup app that shows a toast notification on login with a **"Clock in"** button. When clicked, Playwright runs headlessly to log in and register "In" time. The toast closes automatically when done. A **"Dismiss"** button allows skipping registration.
 
 ---
 
@@ -50,10 +50,10 @@ Credentials are entered interactively and never written to disk. Delete the file
 
 Create `clockin.py`:
 
-- On startup, immediately show a toast notification displaying **"Clocking in!"** in the lower right corner
-- In the main thread, run the Playwright automation to log in and register "In" time
-- When Playwright finishes, close the toast
-- No success/failure states, no buttons, no error handling
+- On startup, show a toast notification in the lower right corner with a **"Clock in"** button and a **"Dismiss"** button
+- Clicking **"Clock in"** disables both buttons, updates the label to "Clocking in...", and runs Playwright in a background thread
+- When Playwright finishes, the toast closes automatically
+- Clicking **"Dismiss"** closes the toast without registering
 
 All configuration (URL, element IDs, keyring service name) is loaded from `.env` which is not checked in.
 
@@ -67,9 +67,10 @@ python clockin.py
 ```
 
 Expected behaviour:
-- A toast appears in the lower right corner showing "Clocking in!"
-- Playwright silently logs in and registers "In" in the background
+- A toast appears in the lower right corner with "Ready to clock in?" and two buttons
+- Clicking "Clock in" triggers Playwright silently in the background
 - Toast closes automatically when Playwright finishes
+- Clicking "Dismiss" closes the toast without registering
 
 ---
 
@@ -134,4 +135,5 @@ All sensitive configuration lives in a local `.env` file (not checked in). Requi
 
 | Scenario | Result |
 |---|---|
-| Script runs | Toast shows "Clocking in!", closes when done |
+| User clicks "Clock in" | Toast updates to "Clocking in...", closes when done |
+| User clicks "Dismiss" | Toast closes, nothing registered |
