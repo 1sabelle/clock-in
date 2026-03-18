@@ -43,6 +43,13 @@ def register_time():
         browser.close()
 
 
+def on_clock_in():
+    btn_clockin.config(state="disabled")
+    btn_dismiss.config(state="disabled")
+    label.config(text="Clocking in...")
+    threading.Thread(target=run_and_close, daemon=True).start()
+
+
 def run_and_close():
     register_time()
     root.after(0, root.destroy)
@@ -54,13 +61,26 @@ root.attributes("-topmost", True)
 root.attributes("-alpha", 0.95)
 root.configure(bg="#1e1e2e")
 
-popup_w, popup_h = 220, 60
+popup_w, popup_h = 260, 90
 x = root.winfo_screenwidth() - popup_w - 20
 y = root.winfo_screenheight() - popup_h - 60
 root.geometry(f"{popup_w}x{popup_h}+{x}+{y}")
 
-tk.Label(root, text="Clocking in!", fg="#cdd6f4", bg="#1e1e2e",
-         font=("Segoe UI", 11, "bold")).pack(expand=True)
+label = tk.Label(root, text="Ready to clock in?", fg="#cdd6f4", bg="#1e1e2e",
+                 font=("Segoe UI", 11, "bold"))
+label.pack(anchor="w", padx=16, pady=(12, 6))
 
-threading.Thread(target=run_and_close, daemon=True).start()
+btn_frame = tk.Frame(root, bg="#1e1e2e")
+btn_frame.pack(anchor="w", padx=16)
+
+btn_clockin = tk.Button(btn_frame, text="Clock in", command=on_clock_in,
+                        bg="#89b4fa", fg="#1e1e2e", bd=0, padx=10, pady=4,
+                        font=("Segoe UI", 9, "bold"), cursor="hand2")
+btn_clockin.pack(side="left")
+
+btn_dismiss = tk.Button(btn_frame, text="Dismiss", command=root.destroy,
+                        bg="#313244", fg="#cdd6f4", bd=0, padx=10, pady=4,
+                        font=("Segoe UI", 9), cursor="hand2")
+btn_dismiss.pack(side="left", padx=(8, 0))
+
 root.mainloop()
